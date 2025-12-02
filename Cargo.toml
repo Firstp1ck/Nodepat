@@ -1,6 +1,6 @@
 [package]
 name = "Nodepat"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 authors = ["Firstpick"]
 description = "A minimalistic text editor built with Rust and egui. Cross-platform and lightweight."

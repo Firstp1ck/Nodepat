@@ -179,7 +179,7 @@ fn show_about_dialog(ctx: &egui::Context, app: &mut NodepatApp) {
         .show(ctx, |ui| {
             ui.vertical(|ui| {
                 ui.heading("Nodepat");
-                ui.label("Version 0.1.0");
+                ui.label("Version 0.1.2");
                 ui.label("Cross-platform text editor");
                 ui.separator();
                 ui.label("A simple text editor built with Rust and egui.");
