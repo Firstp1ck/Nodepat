@@ -12,8 +12,8 @@ APP_NAME="Nodepat"
 BIN_NAME="Nodepat"
 
 # Configuration - Update these with your repository information
-REPO_OWNER="YOUR_USERNAME"  # Update this with your GitHub username
-REPO_NAME="Notepad"  # Update this with your repository name
+REPO_OWNER="Firstp1ck"  # Update this with your GitHub username
+REPO_NAME="Nodepat"  # Update this with your repository name
 
 # Colors for output
 GREEN='\033[0;32m'

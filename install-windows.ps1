@@ -19,8 +19,8 @@ Write-ColorOutput Green "========================================"
 Write-Output ""
 
 # Configuration
-$RepoOwner = "YOUR_USERNAME"  # Update this with your GitHub username
-$RepoName = "Notepad"  # Update this with your repository name
+$RepoOwner = "Firstp1ck"  # Update this with your GitHub username
+$RepoName = "Nodepat"  # Update this with your repository name
 $AppName = "Nodepat"
 $BinaryName = "Nodepat.exe"
 $InstallDir = "$env:LOCALAPPDATA\$AppName"
