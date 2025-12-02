@@ -67,31 +67,124 @@ download_file() {
 # Get latest release information
 echo -e "${GREEN}Fetching latest release information...${NC}"
 RELEASE_API_URL="https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/latest"
+IS_PRERELEASE=false
 
+# Fetch release info with error checking
+TEMP_RESPONSE=$(mktemp)
+HTTP_CODE=""
 if command -v curl &> /dev/null; then
-    RELEASE_INFO=$(curl -s "$RELEASE_API_URL")
+    HTTP_CODE=$(curl -s -o "$TEMP_RESPONSE" -w "%{http_code}" "$RELEASE_API_URL")
+    RELEASE_INFO=$(cat "$TEMP_RESPONSE")
 elif command -v wget &> /dev/null; then
-    RELEASE_INFO=$(wget -qO- "$RELEASE_API_URL")
+    wget -qO "$TEMP_RESPONSE" "$RELEASE_API_URL" 2>&1
+    RELEASE_INFO=$(cat "$TEMP_RESPONSE")
+fi
+rm -f "$TEMP_RESPONSE"
+
+# Check if API call was successful (check for error messages in response)
+if echo "$RELEASE_INFO" | grep -q '"message"'; then
+    ERROR_MSG=$(echo "$RELEASE_INFO" | grep '"message"' | head -1 | sed 's/.*"message":\s*"\([^"]*\)".*/\1/')
+    STATUS_CODE=$(echo "$RELEASE_INFO" | grep '"status"' | head -1 | sed 's/.*"status":\s*\([0-9]*\).*/\1/' || echo "")
+    
+    # If 404, try to get latest prerelease instead
+    if [ "$HTTP_CODE" = "404" ] || [ "$STATUS_CODE" = "404" ]; then
+        echo -e "${YELLOW}No stable release found, checking for prereleases...${NC}"
+        RELEASE_API_URL="https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases"
+        
+        TEMP_RESPONSE=$(mktemp)
+        if command -v curl &> /dev/null; then
+            HTTP_CODE=$(curl -s -o "$TEMP_RESPONSE" -w "%{http_code}" "$RELEASE_API_URL")
+            RELEASES_LIST=$(cat "$TEMP_RESPONSE")
+        elif command -v wget &> /dev/null; then
+            wget -qO "$TEMP_RESPONSE" "$RELEASE_API_URL" 2>&1
+            RELEASES_LIST=$(cat "$TEMP_RESPONSE")
+        fi
+        rm -f "$TEMP_RESPONSE"
+        
+        # Extract the first release (latest, including prereleases)
+        # Releases are ordered by creation date, newest first
+        if echo "$RELEASES_LIST" | grep -q '"tag_name"'; then
+            # Check if the first release is a prerelease
+            FIRST_PRERELEASE=$(echo "$RELEASES_LIST" | grep -A 10 '"tag_name"' | grep '"prerelease"' | head -1 | sed 's/.*"prerelease":\s*\([^,}]*\).*/\1/' | tr -d ' ')
+            
+            # Use the full releases list - extraction will use head -1 to get first release
+            RELEASE_INFO="$RELEASES_LIST"
+            
+            if [ "$FIRST_PRERELEASE" = "true" ]; then
+                IS_PRERELEASE=true
+            else
+                IS_PRERELEASE=false
+            fi
+        else
+            echo -e "${RED}Error: Failed to fetch release information!${NC}"
+            if [ -n "$HTTP_CODE" ] && [ "$HTTP_CODE" != "200" ]; then
+                echo "HTTP Status Code: $HTTP_CODE"
+            elif [ -n "$STATUS_CODE" ]; then
+                echo "HTTP Status Code: $STATUS_CODE"
+            fi
+            if [ -n "$ERROR_MSG" ]; then
+                echo "GitHub API Error: $ERROR_MSG"
+            fi
+            echo ""
+            echo "Possible reasons:"
+            echo "  1. Repository '$REPO_OWNER/$REPO_NAME' does not exist"
+            echo "  2. Repository has no releases yet (including prereleases)"
+            echo "  3. Network connectivity issues"
+            echo ""
+            echo "Please check that REPO_OWNER and REPO_NAME are correct in the script."
+            exit 1
+        fi
+    else
+        echo -e "${RED}Error: Failed to fetch release information!${NC}"
+        if [ -n "$HTTP_CODE" ] && [ "$HTTP_CODE" != "200" ]; then
+            echo "HTTP Status Code: $HTTP_CODE"
+        elif [ -n "$STATUS_CODE" ]; then
+            echo "HTTP Status Code: $STATUS_CODE"
+        fi
+        if [ -n "$ERROR_MSG" ]; then
+            echo "GitHub API Error: $ERROR_MSG"
+        fi
+        echo ""
+        echo "Possible reasons:"
+        echo "  1. Repository '$REPO_OWNER/$REPO_NAME' does not exist"
+        echo "  2. Repository has no releases yet"
+        echo "  3. Network connectivity issues"
+        echo ""
+        echo "Please check that REPO_OWNER and REPO_NAME are correct in the script."
+        exit 1
+    fi
 fi
 
-# Extract version and download URL
-LATEST_VERSION=$(echo "$RELEASE_INFO" | grep -oP '"tag_name":\s*"\K[^"]+' | head -1)
+# Extract version and download URL (using more portable grep)
+LATEST_VERSION=$(echo "$RELEASE_INFO" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name":\s*"\([^"]*\)".*/\1/')
 
 if [ -z "$LATEST_VERSION" ]; then
-    echo -e "${RED}Error: Failed to fetch release information!${NC}"
-    echo "Please check that REPO_OWNER and REPO_NAME are correct in the script."
+    echo -e "${RED}Error: Failed to parse release information!${NC}"
+    echo "API Response:"
+    echo "$RELEASE_INFO" | head -10
     exit 1
 fi
 
-echo -e "${GREEN}Latest version: $LATEST_VERSION${NC}"
+if [ "$IS_PRERELEASE" = true ]; then
+    echo -e "${YELLOW}Latest version (prerelease): $LATEST_VERSION${NC}"
+else
+    echo -e "${GREEN}Latest version: $LATEST_VERSION${NC}"
+fi
 
-# Find the Linux binary asset (exclude .exe files)
-DOWNLOAD_URL=$(echo "$RELEASE_INFO" | grep -oP '"browser_download_url":\s*"\K[^"]*Nodepat[^"]*' | grep -v "\.exe" | head -1)
+# Find the Linux binary asset (exclude .exe files, using portable sed)
+# When using releases list, ensure we get assets from the first release only
+if [ "$IS_PRERELEASE" = true ]; then
+    # Extract first release object's assets section to ensure we get the right download URL
+    # Find assets array that comes after the first tag_name
+    DOWNLOAD_URL=$(echo "$RELEASE_INFO" | grep -A 200 '"tag_name"' | grep -A 200 '"assets"' | grep '"browser_download_url"' | grep -v "\.exe" | grep -i "nodepat" | head -1 | sed 's/.*"browser_download_url":\s*"\([^"]*\)".*/\1/')
+else
+    DOWNLOAD_URL=$(echo "$RELEASE_INFO" | grep '"browser_download_url"' | grep -v "\.exe" | grep -i "nodepat" | head -1 | sed 's/.*"browser_download_url":\s*"\([^"]*\)".*/\1/')
+fi
 
 if [ -z "$DOWNLOAD_URL" ]; then
     echo -e "${RED}Error: Linux binary not found in latest release!${NC}"
     echo "Available assets:"
-    echo "$RELEASE_INFO" | grep -oP '"name":\s*"\K[^"]+' | head -5
+    echo "$RELEASE_INFO" | grep '"name"' | head -5 | sed 's/.*"name":\s*"\([^"]*\)".*/\1/'
     exit 1
 fi
 

@@ -39,6 +39,9 @@ Write-Output ""
 
 # Get latest release information
 Write-Output "Fetching latest release information..."
+$IsPrerelease = $false
+$ReleaseInfo = $null
+
 try {
     $ReleaseUrl = "https://api.github.com/repos/$RepoOwner/$RepoName/releases/latest"
     $ReleaseInfo = Invoke-RestMethod -Uri $ReleaseUrl -Method Get
@@ -62,9 +65,81 @@ try {
     Write-Output "Download URL: $DownloadUrl"
     Write-Output ""
 } catch {
-    Write-ColorOutput Red "Error: Failed to fetch release information!"
-    Write-ColorOutput Red $_.Exception.Message
-    exit 1
+    # Check if it's a 404 error (no stable release found)
+    $StatusCode = $null
+    try {
+        $StatusCode = $_.Exception.Response.StatusCode.value__
+    } catch {
+        # StatusCode might not be available in all PowerShell versions
+        $StatusCode = $null
+    }
+    
+    # Also check error message for 404
+    $Is404 = ($StatusCode -eq 404) -or ($_.Exception.Message -like "*404*") -or ($_.Exception.Message -like "*Not Found*")
+    
+    if ($Is404) {
+        Write-ColorOutput Yellow "No stable release found, checking for prereleases..."
+        
+        try {
+            $ReleasesUrl = "https://api.github.com/repos/$RepoOwner/$RepoName/releases"
+            $ReleasesList = Invoke-RestMethod -Uri $ReleasesUrl -Method Get
+            
+            if ($ReleasesList.Count -eq 0) {
+                Write-ColorOutput Red "Error: No releases found (including prereleases)!"
+                Write-Output ""
+                Write-Output "Possible reasons:"
+                Write-Output "  1. Repository '$RepoOwner/$RepoName' does not exist"
+                Write-Output "  2. Repository has no releases yet"
+                Write-Output "  3. Network connectivity issues"
+                exit 1
+            }
+            
+            # Get the first release (newest, including prereleases)
+            $ReleaseInfo = $ReleasesList[0]
+            $LatestVersion = $ReleaseInfo.tag_name
+            $IsPrerelease = $ReleaseInfo.prerelease
+            
+            if ($IsPrerelease) {
+                Write-ColorOutput Yellow "Latest version (prerelease): $LatestVersion"
+            } else {
+                Write-ColorOutput Green "Latest version: $LatestVersion"
+            }
+            
+            # Find the Windows binary asset
+            $WindowsAsset = $ReleaseInfo.assets | Where-Object { $_.name -eq $BinaryName }
+            
+            if (-not $WindowsAsset) {
+                Write-ColorOutput Red "Error: Windows binary ($BinaryName) not found in latest release!"
+                Write-Output "Available assets:"
+                $ReleaseInfo.assets | ForEach-Object { Write-Output "  - $($_.name)" }
+                exit 1
+            }
+            
+            $DownloadUrl = $WindowsAsset.browser_download_url
+            $DownloadPath = "$InstallDir\$BinaryName"
+            
+            Write-Output "Download URL: $DownloadUrl"
+            Write-Output ""
+        } catch {
+            Write-ColorOutput Red "Error: Failed to fetch release information!"
+            Write-ColorOutput Red $_.Exception.Message
+            Write-Output ""
+            Write-Output "Possible reasons:"
+            Write-Output "  1. Repository '$RepoOwner/$RepoName' does not exist"
+            Write-Output "  2. Repository has no releases yet (including prereleases)"
+            Write-Output "  3. Network connectivity issues"
+            exit 1
+        }
+    } else {
+        Write-ColorOutput Red "Error: Failed to fetch release information!"
+        Write-ColorOutput Red $_.Exception.Message
+        Write-Output ""
+        Write-Output "Possible reasons:"
+        Write-Output "  1. Repository '$RepoOwner/$RepoName' does not exist"
+        Write-Output "  2. Repository has no releases yet"
+        Write-Output "  3. Network connectivity issues"
+        exit 1
+    }
 }
 
 # Download the binary
@@ -123,6 +198,11 @@ Write-Output ""
 Write-Output "Installed files:"
 Write-Output "  - Binary: $DownloadPath"
 Write-Output "  - Desktop shortcut: $ShortcutPath"
+Write-Output ""
+Write-Output "Version installed: $LatestVersion"
+if ($IsPrerelease) {
+    Write-ColorOutput Yellow "  (This is a prerelease version)"
+}
 Write-Output ""
 Write-Output "You can now:"
 Write-Output "  1. Double-click the desktop shortcut to launch $AppName"
