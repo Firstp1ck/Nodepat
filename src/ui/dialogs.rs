@@ -5,7 +5,9 @@
 
 use crate::app::NodepatApp;
 use crate::format::FontFamily;
+use crate::ui::file_browser::FileBrowser;
 use eframe::egui;
+use std::path::PathBuf;
 
 /// Show all dialogs
 ///
@@ -220,51 +222,96 @@ fn show_goto_dialog(ctx: &egui::Context, app: &mut NodepatApp) {
 /// Show Open file dialog
 ///
 /// # Arguments
-/// * `_ctx` - egui context
+/// * `ctx` - egui context
 /// * `app` - Application state
-fn show_open_dialog(_ctx: &egui::Context, app: &mut NodepatApp) {
-    // Use rfd for native file dialogs
-    if let Some(path) = rfd::FileDialog::new().pick_file()
-        && let Some(path_str) = path.to_str()
+fn show_open_dialog(ctx: &egui::Context, app: &mut NodepatApp) {
+    // Initialize file browser if needed
+    if app.file_browser.is_none() {
+        let initial_path = if app.file_state.file_path.is_empty() {
+            None
+        } else {
+            std::path::Path::new(&app.file_state.file_path).parent()
+        };
+        app.file_browser = Some(FileBrowser::new(
+            initial_path,
+            false,
+            Some("txt".to_string()),
+        ));
+    }
+
+    // Show file browser
+    if let Some(ref mut browser) = app.file_browser
+        && let Some(path) = browser.show(ctx, "Open File")
     {
-        match app.file_state.load_file(path_str) {
-            Ok(content) => {
-                app.editor_state.text = content;
-                app.editor_state.undo_history.clear();
-                app.editor_state.redo_history.clear();
-                app.file_state.add_to_recent_files(&mut app.config);
-            }
-            Err(e) => {
-                eprintln!("Error loading file: {e}");
+        if path == PathBuf::from("") {
+            // Cancelled
+            app.file_browser = None;
+            app.show_open_dialog = false;
+            return;
+        }
+
+        if let Some(path_str) = path.to_str() {
+            match app.file_state.load_file(path_str) {
+                Ok(content) => {
+                    app.editor_state.text = content;
+                    app.editor_state.undo_history.clear();
+                    app.editor_state.redo_history.clear();
+                    app.file_state.add_to_recent_files(&mut app.config);
+                }
+                Err(e) => {
+                    eprintln!("Error loading file: {e}");
+                }
             }
         }
+        app.file_browser = None;
+        app.show_open_dialog = false;
     }
-    // Always close dialog, whether cancelled or file loaded
-    app.show_open_dialog = false;
 }
 
 /// Show Save file dialog
 ///
 /// # Arguments
-/// * `_ctx` - egui context
+/// * `ctx` - egui context
 /// * `app` - Application state
-fn show_save_dialog(_ctx: &egui::Context, app: &mut NodepatApp) {
-    // Use rfd for native file dialogs
-    if let Some(path) = rfd::FileDialog::new()
-        .set_file_name(if app.file_state.file_path.is_empty() {
-            "*.txt"
+fn show_save_dialog(ctx: &egui::Context, app: &mut NodepatApp) {
+    // Initialize file browser if needed
+    if app.file_browser.is_none() {
+        let initial_path = if app.file_state.file_path.is_empty() {
+            None
         } else {
-            app.file_state.file_path.as_str()
-        })
-        .save_file()
-        && let Some(path_str) = path.to_str()
-    {
-        if let Err(e) = app.file_state.save_file(path_str, &app.editor_state.text) {
-            eprintln!("Error saving file: {e}");
-        } else {
-            app.file_state.add_to_recent_files(&mut app.config);
+            std::path::Path::new(&app.file_state.file_path).parent()
+        };
+        let mut browser = FileBrowser::new(initial_path, true, Some("txt".to_string()));
+        // Set initial filename if available
+        if !app.file_state.file_path.is_empty()
+            && let Some(filename) = std::path::Path::new(&app.file_state.file_path)
+                .file_name()
+                .and_then(|n| n.to_str())
+        {
+            browser.set_selected_file(filename.to_string());
         }
+        app.file_browser = Some(browser);
     }
-    // Always close dialog, whether cancelled or file saved
-    app.show_save_dialog = false;
+
+    // Show file browser
+    if let Some(ref mut browser) = app.file_browser
+        && let Some(path) = browser.show(ctx, "Save File")
+    {
+        if path == PathBuf::from("") {
+            // Cancelled
+            app.file_browser = None;
+            app.show_save_dialog = false;
+            return;
+        }
+
+        if let Some(path_str) = path.to_str() {
+            if let Err(e) = app.file_state.save_file(path_str, &app.editor_state.text) {
+                eprintln!("Error saving file: {e}");
+            } else {
+                app.file_state.add_to_recent_files(&mut app.config);
+            }
+        }
+        app.file_browser = None;
+        app.show_save_dialog = false;
+    }
 }

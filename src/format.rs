@@ -2,14 +2,11 @@
 //!
 //! This module handles format settings including font selection.
 
-use serde::{Deserialize, Serialize};
-
 /// Font family options
 ///
 /// Represents the available font families in egui.
 /// Monospace fonts are fixed-width, Proportional fonts are variable-width.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[serde(rename_all = "lowercase")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum FontFamily {
     /// Monospace (fixed-width) font family
     #[default]
@@ -45,8 +42,7 @@ impl FontFamily {
 ///
 /// Represents font styling options. Currently supports Regular style.
 /// Bold and Italic styles would require loading custom fonts.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[serde(rename_all = "lowercase")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum FontStyle {
     /// Regular/normal font style
     #[default]

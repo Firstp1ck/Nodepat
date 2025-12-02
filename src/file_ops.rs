@@ -3,7 +3,6 @@
 //! This module handles file operations including opening, saving,
 //! encoding detection and conversion, and recent files management.
 
-use encoding_rs::{Encoding, UTF_8};
 use std::fs;
 
 /// File state including path, modified flag, and encoding
@@ -36,30 +35,29 @@ impl FileState {
         }
 
         // Detect encoding
-        let (text, encoding_used, _) = if file_data.starts_with(&[0xFF, 0xFE]) {
+        let (text, encoding_used) = if file_data.starts_with(&[0xFF, 0xFE]) {
             // UTF-16 LE BOM
             let utf16_data = &file_data[2..];
             let decoded = decode_utf16_le(utf16_data)?;
-            (decoded.into(), "UTF-16 LE", true)
+            (decoded, "UTF-16 LE")
         } else if file_data.starts_with(&[0xFE, 0xFF]) {
             // UTF-16 BE BOM
             let utf16_data = &file_data[2..];
             let decoded = decode_utf16_be(utf16_data)?;
-            (decoded.into(), "UTF-16 BE", true)
+            (decoded, "UTF-16 BE")
         } else if file_data.starts_with(&[0xEF, 0xBB, 0xBF]) {
             // UTF-8 BOM
-            let (decoded, enc_used, _) = UTF_8.decode(&file_data[3..]);
-            (decoded, enc_used.name(), true)
+            let decoded = String::from_utf8_lossy(&file_data[3..]).to_string();
+            (decoded, "UTF-8")
         } else {
             // Try UTF-8 first, fallback to ANSI/Latin1
             String::from_utf8(file_data.clone()).map_or_else(
                 |_| {
                     // Fallback to Latin1 (ANSI)
-                    let encoding = Encoding::for_label(b"latin1").unwrap_or(UTF_8);
-                    let (decoded, enc_used, _) = encoding.decode(&file_data);
-                    (decoded, enc_used.name(), false)
+                    let decoded = decode_latin1(&file_data);
+                    (decoded, "Latin1")
                 },
-                |text| (text.into(), "UTF-8", false),
+                |text| (text, "UTF-8"),
             )
         };
 
@@ -67,7 +65,7 @@ impl FileState {
         self.encoding = encoding_used.to_string();
         self.is_modified = false;
 
-        Ok(text.to_string())
+        Ok(text)
     }
 
     /// Add file to recent files in config
@@ -101,10 +99,7 @@ impl FileState {
                 bytes.extend(encode_utf16_be(content));
                 bytes
             }
-            "ANSI" | "Latin1" => {
-                let encoding = Encoding::for_label(b"latin1").unwrap_or(UTF_8);
-                encoding.encode(content).0.to_vec()
-            }
+            "ANSI" | "Latin1" => encode_latin1(content),
             _ => content.as_bytes().to_vec(), // UTF-8 or unknown
         };
 
@@ -180,6 +175,41 @@ fn encode_utf16_le(text: &str) -> Vec<u8> {
 fn encode_utf16_be(text: &str) -> Vec<u8> {
     text.encode_utf16()
         .flat_map(|c| c.to_be_bytes().to_vec())
+        .collect()
+}
+
+/// Decode Latin1 (ISO-8859-1) bytes to string
+///
+/// Latin1 maps directly: byte 0x00-0xFF maps to Unicode U+0000-U+00FF
+///
+/// # Arguments
+/// * `bytes` - Latin1 encoded bytes
+///
+/// # Returns
+/// Decoded string
+fn decode_latin1(bytes: &[u8]) -> String {
+    bytes.iter().map(|&b| char::from(b)).collect()
+}
+
+/// Encode string to Latin1 (ISO-8859-1) bytes
+///
+/// Characters outside Latin1 range (U+0100 and above) are replaced with '?'
+///
+/// # Arguments
+/// * `text` - Text to encode
+///
+/// # Returns
+/// Encoded bytes
+fn encode_latin1(text: &str) -> Vec<u8> {
+    text.chars()
+        .map(|c| {
+            let code = u32::from(c);
+            if code <= 0xFF {
+                u8::try_from(code).unwrap_or(b'?')
+            } else {
+                b'?' // Replacement character for out-of-range chars
+            }
+        })
         .collect()
 }
 

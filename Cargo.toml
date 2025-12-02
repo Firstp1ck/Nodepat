@@ -1,6 +1,6 @@
 [package]
 name = "Nodepat"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 authors = ["Firstpick"]
 description = "A minimalistic text editor built with Rust and egui. Cross-platform and lightweight."
@@ -8,13 +8,6 @@ description = "A minimalistic text editor built with Rust and egui. Cross-platfo
 [dependencies]
 eframe = { version = "0.33.2", features = ["wayland"] }
 egui = "0.33.2"
-egui_extras = "0.33.2"
-rfd = "0.16.0"
-encoding_rs = "0.8"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-jsonc = "0.1"
-dirs = "6.0.0"
 
 [dev-dependencies]
 

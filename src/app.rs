@@ -8,6 +8,7 @@ use crate::editor::EditorState;
 use crate::file_ops::FileState;
 use crate::format::FormatSettings;
 use crate::search::SearchState;
+use crate::ui::file_browser::FileBrowser;
 use eframe::egui;
 
 /// Main application state
@@ -39,6 +40,8 @@ pub struct NodepatApp {
     pub config: Config,
     /// Dark mode enabled
     pub dark_mode: bool,
+    /// File browser for open/save dialogs
+    pub file_browser: Option<FileBrowser>,
 }
 
 impl Default for NodepatApp {
@@ -60,6 +63,7 @@ impl Default for NodepatApp {
             goto_line: String::new(),
             dark_mode: config.dark_mode,
             config,
+            file_browser: None,
         };
         // Apply config to format settings
         app.config.apply_to_format(&mut app.format_settings);

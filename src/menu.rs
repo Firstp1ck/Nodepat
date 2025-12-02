@@ -226,11 +226,6 @@ fn show_view_menu(ui: &mut egui::Ui, app: &mut NodepatApp) {
 /// * `app` - Application state
 fn show_help_menu(ui: &mut egui::Ui, app: &mut NodepatApp) {
     ui.menu_button("Help", |ui| {
-        if ui.button("Help Topics").clicked() {
-            // Help would open documentation
-            ui.close();
-        }
-        ui.separator();
         if ui.button("About").clicked() {
             app.show_about_dialog = true;
             ui.close();
