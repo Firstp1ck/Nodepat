@@ -41,35 +41,22 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Fir
 
 ## Uninstallation
 
+The installation script automatically downloads an uninstall script for easy removal.
+
 ### Linux
 
-To uninstall Nodepat, run:
+If you installed via the installer, simply run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Firstp1ck/Nodepat/main/uninstall-linux.sh | bash
-```
-
-Or download and run manually:
-
-```bash
-wget https://raw.githubusercontent.com/Firstp1ck/Nodepat/main/uninstall-linux.sh
-chmod +x uninstall-linux.sh
-./uninstall-linux.sh
+uninstall-nodepat.sh
 ```
 
 ### Windows
 
-Run the uninstallation script in PowerShell:
+If you installed via the installer, run:
 
 ```powershell
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Firstp1ck/Nodepat/main/uninstall-windows.ps1" -UseBasicParsing).Content
-```
-
-Or download and run manually:
-
-```powershell
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Firstp1ck/Nodepat/main/uninstall-windows.ps1" -OutFile "uninstall-windows.ps1"
-.\uninstall-windows.ps1
+& "$env:LOCALAPPDATA\Nodepat\uninstall-Nodepat.ps1"
 ```
 
 The uninstall scripts will remove:
@@ -77,29 +64,7 @@ The uninstall scripts will remove:
 - Desktop entry/shortcut
 - Icon file
 - PATH entries (if added by the installer)
-
-## Building
-
-```bash
-cargo build --release
-```
-
-## Running
-
-```bash
-cargo run
-```
-
-Or run the release binary:
-
-```bash
-./target/release/Nodepat
-```
-
-## Requirements
-
-- Rust 1.70 or later
-- System dependencies for egui (usually pre-installed on most systems)
+- The uninstall script itself
 
 ## Platform Support
 
