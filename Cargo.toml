@@ -1,0 +1,26 @@
+[package]
+name = "Nodepat"
+version = "0.1.0"
+edition = "2024"
+authors = ["Firstpick"]
+description = "A minimalistic text editor built with Rust and egui. Cross-platform and lightweight."
+
+[dependencies]
+eframe = "0.33.2"
+egui = "0.33.2"
+egui_extras = "0.33.2"
+rfd = "0.16.0"
+encoding_rs = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+jsonc = "0.1"
+dirs = "6.0.0"
+
+[dev-dependencies]
+
+[lints.clippy]
+cognitive_complexity = "warn"
+pedantic = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+unwrap_used = "deny"
+
