@@ -160,6 +160,23 @@ if (-not (Test-Path $DownloadPath)) {
     exit 1
 }
 
+# Download icon (optional)
+$IconPath = "$InstallDir\$AppName.ico"
+$IconDownloaded = $false
+try {
+    Write-Output "Downloading icon..."
+    $IconUrl = "https://raw.githubusercontent.com/$RepoOwner/$RepoName/main/icon.jpg"
+    $IconJpgPath = "$InstallDir\$AppName.jpg"
+    Invoke-WebRequest -Uri $IconUrl -OutFile $IconJpgPath -UseBasicParsing -ErrorAction SilentlyContinue
+    if (Test-Path $IconJpgPath) {
+        $IconPath = $IconJpgPath
+        $IconDownloaded = $true
+        Write-ColorOutput Green "Icon downloaded"
+    }
+} catch {
+    Write-ColorOutput Yellow "Warning: Could not download icon (optional)"
+}
+
 # Create desktop shortcut
 Write-Output "Creating desktop shortcut..."
 try {
@@ -168,6 +185,9 @@ try {
     $Shortcut.TargetPath = $DownloadPath
     $Shortcut.WorkingDirectory = $InstallDir
     $Shortcut.Description = "Nodepat - A minimalistic text editor"
+    if ($IconDownloaded) {
+        $Shortcut.IconLocation = $IconPath
+    }
     $Shortcut.Save()
     Write-ColorOutput Green "Desktop shortcut created!"
     Write-Output ""

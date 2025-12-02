@@ -212,17 +212,37 @@ mv "$TEMP_BINARY" "$INSTALL_PATH"
 echo -e "Binary installed to ${GREEN}$INSTALL_PATH${NC}"
 echo ""
 
-# Check if files exist
+# Check if files exist, download from GitHub if not found locally
 if [ ! -f "$DESKTOP_FILE" ]; then
-    echo -e "${YELLOW}Warning: $DESKTOP_FILE not found. Desktop entry will not be installed.${NC}"
-    DESKTOP_INSTALL=false
+    echo -e "${YELLOW}Desktop file not found locally, downloading from GitHub...${NC}"
+    DESKTOP_FILE_TEMP=$(mktemp)
+    DESKTOP_URL="https://raw.githubusercontent.com/$REPO_OWNER/$REPO_NAME/main/nodepat.desktop"
+    if download_file "$DESKTOP_URL" "$DESKTOP_FILE_TEMP" 2>/dev/null && [ -s "$DESKTOP_FILE_TEMP" ]; then
+        DESKTOP_FILE="$DESKTOP_FILE_TEMP"
+        DESKTOP_INSTALL=true
+        echo -e "${GREEN}Desktop file downloaded${NC}"
+    else
+        echo -e "${YELLOW}Warning: Could not download desktop file. Desktop entry will not be installed.${NC}"
+        rm -f "$DESKTOP_FILE_TEMP"
+        DESKTOP_INSTALL=false
+    fi
 else
     DESKTOP_INSTALL=true
 fi
 
 if [ ! -f "$ICON_FILE" ]; then
-    echo -e "${YELLOW}Warning: $ICON_FILE not found. Icon will not be installed.${NC}"
-    ICON_INSTALL=false
+    echo -e "${YELLOW}Icon file not found locally, downloading from GitHub...${NC}"
+    ICON_FILE_TEMP=$(mktemp)
+    ICON_URL="https://raw.githubusercontent.com/$REPO_OWNER/$REPO_NAME/main/icon.jpg"
+    if download_file "$ICON_URL" "$ICON_FILE_TEMP" 2>/dev/null && [ -s "$ICON_FILE_TEMP" ]; then
+        ICON_FILE="$ICON_FILE_TEMP"
+        ICON_INSTALL=true
+        echo -e "${GREEN}Icon file downloaded${NC}"
+    else
+        echo -e "${YELLOW}Warning: Could not download icon file. Icon will not be installed.${NC}"
+        rm -f "$ICON_FILE_TEMP"
+        ICON_INSTALL=false
+    fi
 else
     ICON_INSTALL=true
 fi
@@ -259,7 +279,17 @@ if [ "$DESKTOP_INSTALL" = true ]; then
     # Cleanup
     rm "$TEMP_DESKTOP"
     
+    # Cleanup downloaded desktop file if it was temporary
+    if [ -n "$DESKTOP_FILE_TEMP" ] && [ "$DESKTOP_FILE" = "$DESKTOP_FILE_TEMP" ]; then
+        rm -f "$DESKTOP_FILE_TEMP"
+    fi
+    
     echo -e "Desktop entry installed to ${GREEN}~/.local/share/applications/${APP_NAME}.desktop${NC}"
+fi
+
+# Cleanup downloaded icon file if it was temporary
+if [ -n "$ICON_FILE_TEMP" ] && [ "$ICON_FILE" = "$ICON_FILE_TEMP" ]; then
+    rm -f "$ICON_FILE_TEMP"
 fi
 
 # Add to PATH if not already present
