@@ -96,10 +96,27 @@ pub fn show_editor(ui: &mut egui::Ui, app: &mut NodepatApp) {
             #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
             let desired_rows = rows_f32 as usize;
 
+            // Apply font settings locally for the editor
+            // This ensures UI elements like checkboxes aren't affected
+            let font_size = app.format_settings.font_size;
+            let font_id = match app.format_settings.font_family_type {
+                crate::format::FontFamily::Monospace => egui::FontId::monospace(font_size),
+                crate::format::FontFamily::Proportional => egui::FontId::proportional(font_size),
+            };
+            
+            // Apply font to the editor's UI context only
+            ui.style_mut().text_styles.insert(egui::TextStyle::Body, font_id.clone());
+            ui.style_mut().text_styles.insert(egui::TextStyle::Monospace, font_id);
+            
+            // Use appropriate text style based on font family
+            let text_style = match app.format_settings.font_family_type {
+                crate::format::FontFamily::Monospace => egui::TextStyle::Monospace,
+                crate::format::FontFamily::Proportional => egui::TextStyle::Body,
+            };
             let text_edit = egui::TextEdit::multiline(&mut app.editor_state.text)
                 .desired_width(f32::INFINITY)
                 .desired_rows(desired_rows)
-                .font(egui::TextStyle::Monospace)
+                .font(text_style)
                 .show(ui);
 
             // Update cursor position

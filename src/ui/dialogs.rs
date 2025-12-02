@@ -4,6 +4,7 @@
 //! font selection, and about dialog.
 
 use crate::app::NodepatApp;
+use crate::format::FontFamily;
 use eframe::egui;
 
 /// Show all dialogs
@@ -117,11 +118,18 @@ fn show_font_dialog(ctx: &egui::Context, app: &mut NodepatApp) {
         .resizable(false)
         .show(ctx, |ui| {
             ui.vertical(|ui| {
-                ui.label("Font:");
-                ui.text_edit_singleline(&mut app.format_settings.font_family);
-
-                ui.label("Font style:");
-                // Font style selection would go here
+                ui.label("Font family:");
+                egui::ComboBox::from_id_salt("font_family")
+                    .selected_text(app.format_settings.font_family_type.display_name())
+                    .show_ui(ui, |ui| {
+                        for family in FontFamily::all() {
+                            ui.selectable_value(
+                                &mut app.format_settings.font_family_type,
+                                family,
+                                family.display_name(),
+                            );
+                        }
+                    });
 
                 ui.label("Size:");
                 ui.add(egui::Slider::new(
@@ -131,11 +139,16 @@ fn show_font_dialog(ctx: &egui::Context, app: &mut NodepatApp) {
 
                 ui.separator();
                 ui.label("Sample");
-                // Show sample text with current font size (using monospace font)
-                ui.style_mut().text_styles.insert(
-                    egui::TextStyle::Body,
-                    egui::FontId::monospace(app.format_settings.font_size),
-                );
+                // Show sample text with current font settings
+                let font_id = match app.format_settings.font_family_type {
+                    FontFamily::Monospace => egui::FontId::monospace(app.format_settings.font_size),
+                    FontFamily::Proportional => {
+                        egui::FontId::proportional(app.format_settings.font_size)
+                    }
+                };
+                ui.style_mut()
+                    .text_styles
+                    .insert(egui::TextStyle::Body, font_id);
                 ui.label("AaBbYyZz");
 
                 ui.horizontal(|ui| {

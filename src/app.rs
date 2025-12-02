@@ -98,15 +98,19 @@ impl eframe::App for NodepatApp {
             egui::Visuals::light()
         });
 
-        // Apply font settings to the context before showing editor
-        // Note: egui only supports built-in font families, so we always use Monospace
-        // The font_family setting is kept for UI consistency but doesn't affect rendering
+        // Apply font settings only to Monospace (used by editor)
+        // Don't modify TextStyle::Body as it affects UI elements like checkboxes
         let font_size = self.format_settings.font_size;
+        let font_id = match self.format_settings.font_family_type {
+            crate::format::FontFamily::Monospace => egui::FontId::monospace(font_size),
+            crate::format::FontFamily::Proportional => egui::FontId::proportional(font_size),
+        };
         ctx.style_mut(|style| {
-            style.text_styles.insert(
-                egui::TextStyle::Monospace,
-                egui::FontId::monospace(font_size),
-            );
+            style
+                .text_styles
+                .insert(egui::TextStyle::Monospace, font_id.clone());
+            // For proportional fonts in editor, we'll apply it locally in the editor widget
+            // Don't modify TextStyle::Body globally as it affects UI elements
         });
 
         // Show menu bar

@@ -3,7 +3,7 @@
 //! This module handles loading and saving configuration from config.jsonc
 //! including recent files, font settings, and window preferences.
 
-use crate::format::FormatSettings;
+use crate::format::{FontFamily, FontStyle, FormatSettings};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
@@ -13,8 +13,14 @@ use std::path::PathBuf;
 pub struct Config {
     /// Recent files list
     pub recent_files: Vec<String>,
-    /// Font family
+    /// Font family (kept for backward compatibility)
     pub font_family: String,
+    /// Font family type (Monospace or Proportional)
+    #[serde(default)]
+    pub font_family_type: FontFamily,
+    /// Font style (Regular, Bold, Italic, `BoldItalic`)
+    #[serde(default)]
+    pub font_style: FontStyle,
     /// Font size
     pub font_size: f32,
     /// Status bar visible
@@ -53,6 +59,8 @@ impl Config {
         Self {
             recent_files: Vec::new(),
             font_family: "Courier New".to_string(),
+            font_family_type: FontFamily::Monospace,
+            font_style: FontStyle::Regular,
             font_size: 10.0,
             show_status_bar: false,
             dark_mode: true,
@@ -111,6 +119,8 @@ impl Config {
     /// * `format_settings` - Format settings to update
     pub fn apply_to_format(&self, format_settings: &mut FormatSettings) {
         format_settings.font_family.clone_from(&self.font_family);
+        format_settings.font_family_type = self.font_family_type;
+        format_settings.font_style = self.font_style;
         format_settings.font_size = self.font_size;
     }
 
@@ -120,6 +130,8 @@ impl Config {
     /// * `format_settings` - Format settings to read from
     pub fn update_from_format(&mut self, format_settings: &FormatSettings) {
         self.font_family.clone_from(&format_settings.font_family);
+        self.font_family_type = format_settings.font_family_type;
+        self.font_style = format_settings.font_style;
         self.font_size = format_settings.font_size;
     }
 }

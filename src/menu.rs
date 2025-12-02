@@ -97,7 +97,10 @@ fn show_file_menu(ui: &mut egui::Ui, app: &mut NodepatApp) {
         }
         ui.separator();
         if ui.button("Exit").clicked() {
-            // Exit would be handled by checking if file needs saving
+            // Close the application
+            // Note: In a full implementation, we would check for unsaved changes
+            // and prompt the user to save before exiting
+            ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
             ui.close();
         }
     });
