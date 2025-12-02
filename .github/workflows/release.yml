@@ -7,6 +7,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -33,23 +36,15 @@ jobs:
           }
           Write-Output "tag=$tag" >> $env:GITHUB_OUTPUT
       
-      - name: Create Release if needed
-        if: github.event_name == 'push'
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-          body: "Automated release for tag ${{ steps.tag.outputs.tag }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Upload Release Asset
+      - name: Create or Update Release and Upload Asset
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           files: target/release/Nodepat.exe
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -89,23 +84,15 @@ jobs:
             echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           fi
       
-      - name: Create Release if needed
-        if: github.event_name == 'push'
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-          body: "Automated release for tag ${{ steps.tag.outputs.tag }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Upload Release Asset
+      - name: Create or Update Release and Upload Asset
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           files: target/release/Nodepat
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
