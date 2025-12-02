@@ -1,7 +1,7 @@
 //! File dialogs, font dialog, and about dialog
 //!
 //! This module implements various dialogs including file open/save,
-//! font selection, about dialog, and page setup.
+//! font selection, and about dialog.
 
 use crate::app::NodepatApp;
 use eframe::egui;
@@ -32,9 +32,6 @@ pub fn show_dialogs(ctx: &egui::Context, app: &mut NodepatApp) {
     }
     if app.show_save_dialog {
         show_save_dialog(ctx, app);
-    }
-    if app.show_page_setup_dialog {
-        show_page_setup_dialog(ctx, app);
     }
 }
 
@@ -257,29 +254,4 @@ fn show_save_dialog(_ctx: &egui::Context, app: &mut NodepatApp) {
     }
     // Always close dialog, whether cancelled or file saved
     app.show_save_dialog = false;
-}
-
-/// Show Page Setup dialog
-///
-/// # Arguments
-/// * `ctx` - egui context
-/// * `app` - Application state
-fn show_page_setup_dialog(ctx: &egui::Context, app: &mut NodepatApp) {
-    egui::Window::new("Page Setup")
-        .collapsible(false)
-        .resizable(false)
-        .show(ctx, |ui| {
-            ui.vertical(|ui| {
-                ui.label("Page Setup options would go here");
-                ui.label("(Print functionality not fully implemented)");
-                ui.horizontal(|ui| {
-                    if ui.button("OK").clicked() {
-                        app.show_page_setup_dialog = false;
-                    }
-                    if ui.button("Cancel").clicked() {
-                        app.show_page_setup_dialog = false;
-                    }
-                });
-            });
-        });
 }

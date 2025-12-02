@@ -96,15 +96,6 @@ fn show_file_menu(ui: &mut egui::Ui, app: &mut NodepatApp) {
             ui.close();
         }
         ui.separator();
-        if ui.button("Page Setup...").clicked() {
-            app.show_page_setup_dialog = true;
-            ui.close();
-        }
-        if ui.button("Print...\tCtrl+P").clicked() {
-            // Print functionality would go here
-            ui.close();
-        }
-        ui.separator();
         if ui.button("Exit").clicked() {
             // Exit would be handled by checking if file needs saving
             ui.close();

@@ -34,7 +34,6 @@ pub struct NodepatApp {
     pub show_goto_dialog: bool,
     pub show_open_dialog: bool,
     pub show_save_dialog: bool,
-    pub show_page_setup_dialog: bool,
     pub goto_line: String,
     /// Configuration
     pub config: Config,
@@ -58,7 +57,6 @@ impl Default for NodepatApp {
             show_goto_dialog: false,
             show_open_dialog: false,
             show_save_dialog: false,
-            show_page_setup_dialog: false,
             goto_line: String::new(),
             dark_mode: config.dark_mode,
             config,
