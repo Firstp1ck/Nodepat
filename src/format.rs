@@ -8,19 +8,14 @@ use serde::{Deserialize, Serialize};
 ///
 /// Represents the available font families in egui.
 /// Monospace fonts are fixed-width, Proportional fonts are variable-width.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum FontFamily {
     /// Monospace (fixed-width) font family
+    #[default]
     Monospace,
     /// Proportional (variable-width) font family
     Proportional,
-}
-
-impl Default for FontFamily {
-    fn default() -> Self {
-        Self::Monospace
-    }
 }
 
 impl FontFamily {
@@ -50,10 +45,11 @@ impl FontFamily {
 ///
 /// Represents font styling options. Currently supports Regular style.
 /// Bold and Italic styles would require loading custom fonts.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum FontStyle {
     /// Regular/normal font style
+    #[default]
     Regular,
     /// Bold font style (requires custom font)
     Bold,
@@ -61,12 +57,6 @@ pub enum FontStyle {
     Italic,
     /// Bold italic font style (requires custom font)
     BoldItalic,
-}
-
-impl Default for FontStyle {
-    fn default() -> Self {
-        Self::Regular
-    }
 }
 
 impl FontStyle {
