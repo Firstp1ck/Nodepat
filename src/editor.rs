@@ -103,11 +103,15 @@ pub fn show_editor(ui: &mut egui::Ui, app: &mut NodepatApp) {
                 crate::format::FontFamily::Monospace => egui::FontId::monospace(font_size),
                 crate::format::FontFamily::Proportional => egui::FontId::proportional(font_size),
             };
-            
+
             // Apply font to the editor's UI context only
-            ui.style_mut().text_styles.insert(egui::TextStyle::Body, font_id.clone());
-            ui.style_mut().text_styles.insert(egui::TextStyle::Monospace, font_id);
-            
+            ui.style_mut()
+                .text_styles
+                .insert(egui::TextStyle::Body, font_id.clone());
+            ui.style_mut()
+                .text_styles
+                .insert(egui::TextStyle::Monospace, font_id);
+
             // Use appropriate text style based on font family
             let text_style = match app.format_settings.font_family_type {
                 crate::format::FontFamily::Monospace => egui::TextStyle::Monospace,
