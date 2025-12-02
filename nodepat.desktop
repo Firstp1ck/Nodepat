@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Nodepat
+Comment=A minimalistic text editor built with Rust and egui
+Exec=nodepat
+Icon=nodepat
+Terminal=false
+Categories=Utility;TextEditor;
+MimeType=text/plain;
+
