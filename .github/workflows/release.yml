@@ -1,0 +1,65 @@
+name: Build and Release
+
+on:
+  release:
+    types: [created]
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      
+      - name: Build Release
+        run: cargo build --release
+      
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: target/release/Nodepat.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libxcb-render0-dev \
+            libxcb-shape0-dev \
+            libxcb-xfixes0-dev \
+            libxkbcommon-dev \
+            libssl-dev \
+            libwayland-dev \
+            libwayland-client0 \
+            libwayland-egl1
+      
+      - name: Build Release
+        run: cargo build --release
+      
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: target/release/Nodepat
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

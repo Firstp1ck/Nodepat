@@ -6,7 +6,7 @@ authors = ["Firstpick"]
 description = "A minimalistic text editor built with Rust and egui. Cross-platform and lightweight."
 
 [dependencies]
-eframe = "0.33.2"
+eframe = { version = "0.33.2", features = ["wayland"] }
 egui = "0.33.2"
 egui_extras = "0.33.2"
 rfd = "0.16.0"
