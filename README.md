@@ -37,6 +37,47 @@ Or run directly:
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Firstp1ck/Nodepat/main/install-windows.ps1" -UseBasicParsing).Content
 ```
 
+**Note:** The installation scripts download pre-built binaries from GitHub releases. Desktop file and icon installation is optional and will be skipped if the files are not available.
+
+## Uninstallation
+
+### Linux
+
+To uninstall Nodepat, run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Firstp1ck/Nodepat/main/uninstall-linux.sh | bash
+```
+
+Or download and run manually:
+
+```bash
+wget https://raw.githubusercontent.com/Firstp1ck/Nodepat/main/uninstall-linux.sh
+chmod +x uninstall-linux.sh
+./uninstall-linux.sh
+```
+
+### Windows
+
+Run the uninstallation script in PowerShell:
+
+```powershell
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Firstp1ck/Nodepat/main/uninstall-windows.ps1" -UseBasicParsing).Content
+```
+
+Or download and run manually:
+
+```powershell
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Firstp1ck/Nodepat/main/uninstall-windows.ps1" -OutFile "uninstall-windows.ps1"
+.\uninstall-windows.ps1
+```
+
+The uninstall scripts will remove:
+- The binary executable
+- Desktop entry/shortcut
+- Icon file
+- PATH entries (if added by the installer)
+
 ## Building
 
 ```bash

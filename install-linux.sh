@@ -315,6 +315,19 @@ if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
     fi
 fi
 
+# Download and install uninstall script
+echo -e "${BLUE}Downloading uninstall script...${NC}"
+UNINSTALL_SCRIPT_PATH="$HOME/.local/bin/uninstall-${APP_NAME,,}.sh"
+UNINSTALL_SCRIPT_URL="https://raw.githubusercontent.com/$REPO_OWNER/$REPO_NAME/main/uninstall-linux.sh"
+
+if download_file "$UNINSTALL_SCRIPT_URL" "$UNINSTALL_SCRIPT_PATH" 2>/dev/null && [ -s "$UNINSTALL_SCRIPT_PATH" ]; then
+    chmod +x "$UNINSTALL_SCRIPT_PATH"
+    echo -e "${GREEN}Uninstall script installed to: $UNINSTALL_SCRIPT_PATH${NC}"
+    echo -e "${BLUE}You can uninstall by running: $UNINSTALL_SCRIPT_PATH${NC}"
+else
+    echo -e "${YELLOW}Warning: Could not download uninstall script (optional)${NC}"
+fi
+
 echo ""
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}  Installation Complete!${NC}"
@@ -328,6 +341,9 @@ fi
 if [ "$DESKTOP_INSTALL" = true ]; then
     echo "  - Desktop entry: ~/.local/share/applications/${APP_NAME}.desktop"
 fi
+if [ -f "$UNINSTALL_SCRIPT_PATH" ]; then
+    echo "  - Uninstall script: $UNINSTALL_SCRIPT_PATH"
+fi
 echo ""
 echo "Version installed: $LATEST_VERSION"
 echo ""
@@ -335,5 +351,8 @@ echo "You can now:"
 echo "  1. Run '$BIN_NAME' from any terminal (after restart or 'source ~/.bashrc')"
 echo "  2. Launch from your application menu"
 echo "  3. Run '$INSTALL_PATH' directly"
+if [ -f "$UNINSTALL_SCRIPT_PATH" ]; then
+    echo "  4. Uninstall by running: $UNINSTALL_SCRIPT_PATH"
+fi
 echo ""
 echo -e "${GREEN}Installation completed successfully!${NC}"

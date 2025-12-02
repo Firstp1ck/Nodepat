@@ -210,6 +210,18 @@ if ($UserPath -notlike "*$InstallDir*") {
     Write-Output ""
 }
 
+# Download and install uninstall script
+Write-Output "Downloading uninstall script..."
+try {
+    $UninstallScriptPath = "$InstallDir\uninstall-$AppName.ps1"
+    $UninstallScriptUrl = "https://raw.githubusercontent.com/$RepoOwner/$RepoName/main/uninstall-windows.ps1"
+    Invoke-WebRequest -Uri $UninstallScriptUrl -OutFile $UninstallScriptPath -UseBasicParsing -ErrorAction Stop
+    Write-ColorOutput Green "Uninstall script installed to: $UninstallScriptPath"
+    Write-ColorOutput Blue "You can uninstall by running: $UninstallScriptPath"
+} catch {
+    Write-ColorOutput Yellow "Warning: Could not download uninstall script (optional)"
+}
+
 # Summary
 Write-ColorOutput Green "========================================"
 Write-ColorOutput Green "  Installation Complete!"
@@ -218,6 +230,12 @@ Write-Output ""
 Write-Output "Installed files:"
 Write-Output "  - Binary: $DownloadPath"
 Write-Output "  - Desktop shortcut: $ShortcutPath"
+if ($IconDownloaded) {
+    Write-Output "  - Icon: $IconPath"
+}
+if (Test-Path $UninstallScriptPath) {
+    Write-Output "  - Uninstall script: $UninstallScriptPath"
+}
 Write-Output ""
 Write-Output "Version installed: $LatestVersion"
 if ($IsPrerelease) {
@@ -228,6 +246,9 @@ Write-Output "You can now:"
 Write-Output "  1. Double-click the desktop shortcut to launch $AppName"
 Write-Output "  2. Run '$AppName' from any terminal (after restart)"
 Write-Output "  3. Run '$DownloadPath' directly"
+if (Test-Path $UninstallScriptPath) {
+    Write-Output "  4. Uninstall by running: $UninstallScriptPath"
+}
 Write-Output ""
 Write-ColorOutput Green "Installation completed successfully!"
 
