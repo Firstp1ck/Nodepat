@@ -16,7 +16,7 @@ A minimalistic text editor built with Rust and egui. Cross-platform and lightwei
 
 ### Linux
 
-You can install Nodepat without cloning the repository using the installation script:
+Install Nodepat using the installation script:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Firstp1ck/Nodepat/main/install-linux.sh | bash
@@ -24,7 +24,7 @@ curl -fsSL https://raw.githubusercontent.com/Firstp1ck/Nodepat/main/install-linu
 
 ### Windows
 
-Run the installation script in PowerShell:
+Install Nodepat using the installation script:
 
 ```powershell
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Firstp1ck/Nodepat/main/install-windows.ps1" -OutFile "install-windows.ps1"
@@ -37,7 +37,10 @@ Or run directly:
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Firstp1ck/Nodepat/main/install-windows.ps1" -UseBasicParsing).Content
 ```
 
-**Note:** The installation scripts download pre-built binaries from GitHub releases. Desktop file and icon installation is optional and will be skipped if the files are not available.
+**Note:** If you encounter an execution policy error, you may need to run:
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
 
 ## Uninstallation
 
