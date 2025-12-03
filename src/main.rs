@@ -2,6 +2,8 @@
 //!
 //! Cross-platform text editor built with Rust and egui.
 
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 mod app;
 mod config;
 mod editor;
